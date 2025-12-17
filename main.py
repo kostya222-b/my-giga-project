@@ -3,27 +3,22 @@ from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
-CORS(app)  # Разрешаем CORS для всех доменов
+CORS(app, resources={r"/api/*": {"origins": "*"}})  # Разрешаем CORS для всех доменов
 
 # Ваш API-ключ GigaChat
-API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjE0NjNlM2Q0LTA4YzktNGFjOS04MDlmLWZlYzdhNDE3OWY4Zg=="
+API_KEY = "your_giga_chat_api_key"
 BASE_URL = "https://api.giga.chat/v1/chat/completions"
 MODEL_NAME = "giga-large"
 
 @app.route('/')
 def home():
-    """Главная страница (если нужна)"""
     return "Backend for GigaChat Extension"
 
-@app.route('/api/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST', 'OPTIONS'])
 def chat():
-    """
-    Обрабатываем запрос от расширения:
-    - question: текст вопроса
-    - options: список вариантов ответов
-    - isMultipleChoice: флаг множественного выбора
-    - incorrectCombinations: список некорректных комбинаций
-    """
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
     data = request.json
     question = data.get('question')
     options = data.get('options')
@@ -41,7 +36,7 @@ def chat():
         "Выбери все подходящие варианты ответов ИЗ ПРЕДЛОЖЕННЫХ, если это вопрос с несколькими ответами, "
         "или один вариант, если это вопрос с одним ответом. "
         "Ответь только вариантами через запятую, каждый вариант в кавычках, в точности как в списке, без изменений. "
-        f"Некорректные комбинации ответов: {[f'\"{', '.join(combo)}\"' for combo in incorrect_combinations]}."
+        f"Некорректные комбинации ответов: {[f'\"{", ".join(combo)}\"' for combo in incorrect_combinations]}."
     )
 
     # Формируем пользовательское сообщение
@@ -49,7 +44,7 @@ def chat():
         f"Вопрос: {question}\n"
         f"Варианты ответов:\n{'\\n'.join(options)}\n\n"
         f"Выбери {'все подходящие варианты' if is_multiple_choice else 'наиболее подходящий вариант'} ответа ИЗ ПРЕДЛОЖЕННЫХ.\n"
-        f"Некорректные комбинации ответов: {[f'\"{', '.join(combo)}\"' for combo in incorrect_combinations]}."
+        f"Некорректные комбинации ответов: {[f'\"{", ".join(combo)}\"' for combo in incorrect_combinations]}."
     )
 
     payload = {
