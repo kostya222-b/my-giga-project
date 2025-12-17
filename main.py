@@ -4,6 +4,7 @@ import requests
 import os
 import time
 import uuid
+import base64
 import logging
 
 app = Flask(__name__)
@@ -14,13 +15,16 @@ client_id = "da9683f7-7f85-4cef-944d-0dfef3227e31"
 client_secret = "da9683f7-7f85-4cef-944d-0dfef3227e31"
 
 def get_access_token():
+    credentials = f"{client_id}:{client_secret}"
+    encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+
     url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
     payload = {'scope': 'GIGACHAT_API_PERS'}
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
-        'RqUID': str(uuid.uuid4()),  # Генерация уникального идентификатора
-        'Authorization': f'Basic {client_id}:{client_secret}'
+        'RqUID': str(uuid.uuid4()),
+        'Authorization': f'Basic {encoded_credentials}'
     }
 
     try:
