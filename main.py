@@ -6,7 +6,8 @@ import os
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjE0NjNlM2Q0LTA4YzktNGFjOS04MDlmLWZlYzdhNDE3OWY4Zg==y"
+# Замените на ваш актуальный API-ключ GigaChat
+API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjU0MDdkNzFmLTczYzAtNDI5Yy04MzAxLTA4N2FjMjlhNTM1YQ=="
 BASE_URL = "https://api.giga.chat/v1/chat/completions"
 MODEL_NAME = "giga-large"
 
@@ -26,9 +27,6 @@ def chat():
     incorrect_combinations = data.get('incorrectCombinations', [])
 
     app.logger.info(f"Вопрос: {question}")
-    app.logger.info(f"Варианты: {options}")
-    app.logger.info(f"Множественный выбор: {is_multiple_choice}")
-    app.logger.info(f"Некорректные комбинации: {incorrect_combinations}")
 
     system_message = (
         "Ты эксперт по медицинским тестам. "
@@ -59,6 +57,7 @@ def chat():
     }
 
     try:
+        app.logger.info(f"Отправляю запрос к GigaChat с ключом: {API_KEY[:10]}...")  # Логируем только начало ключа для безопасности
         response = requests.post(BASE_URL, json=payload, headers=headers, verify=False)
         response.raise_for_status()
         response_data = response.json()
