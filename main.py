@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Замените на ваш актуальный API-ключ GigaChat
+# Ваш API-ключ GigaChat
 API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjU0MDdkNzFmLTczYzAtNDI5Yy04MzAxLTA4N2FjMjlhNTM1YQ=="
 BASE_URL = "https://api.giga.chat/v1/chat/completions"
 MODEL_NAME = "giga-large"
@@ -57,8 +57,9 @@ def chat():
     }
 
     try:
-        app.logger.info(f"Отправляю запрос к GigaChat с ключом: {API_KEY[:10]}...")  # Логируем только начало ключа для безопасности
+        app.logger.info(f"Отправляю запрос к GigaChat с ключом: {API_KEY[:10]}...")
         response = requests.post(BASE_URL, json=payload, headers=headers, verify=False)
+        app.logger.info(f"Статус ответа: {response.status_code}")
         response.raise_for_status()
         response_data = response.json()
         app.logger.info(f"Ответ от GigaChat: {response_data}")
