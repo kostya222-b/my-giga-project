@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-API_KEY = "your_giga_chat_api_key"
+API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjE0NjNlM2Q0LTA4YzktNGFjOS04MDlmLWZlYzdhNDE3OWY4Zg=="
 BASE_URL = "https://api.giga.chat/v1/chat/completions"
 MODEL_NAME = "giga-large"
 
