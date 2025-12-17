@@ -3,8 +3,8 @@ from flask_cors import CORS
 import requests
 import os
 import time
-import http.client
-import json
+import uuid
+import logging
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -14,19 +14,23 @@ client_id = "da9683f7-7f85-4cef-944d-0dfef3227e31"
 client_secret = "da9683f7-7f85-4cef-944d-0dfef3227e31"
 
 def get_access_token():
-    conn = http.client.HTTPSConnection("ngw.devices.sberbank.ru")
-    payload = 'scope=GIGACHAT_API_PERS'
+    url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
+    payload = {'scope': 'GIGACHAT_API_PERS'}
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
-        'RqUID': str(int(time.time())),  # Уникальный идентификатор запроса
+        'RqUID': str(uuid.uuid4()),  # Генерация уникального идентификатора
         'Authorization': f'Basic {client_id}:{client_secret}'
     }
-    conn.request("POST", "/api/v2/oauth", payload, headers)
-    res = conn.getresponse()
-    data = res.read()
-    token_info = json.loads(data.decode("utf-8"))
-    return token_info['access_token']
+
+    try:
+        response = requests.post(url, headers=headers, data=payload, verify=False)
+        response.raise_for_status()
+        token_info = response.json()
+        return token_info['access_token']
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении токена: {str(e)}")
+        raise
 
 @app.route('/')
 def home():
@@ -83,10 +87,11 @@ def chat():
     try:
         app.logger.info(f"Отправляю запрос к GigaChat...")
         response = requests.post(
-            "https://gigachat.devices.sberbank.ru/chat/completions",
+            "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
             json=payload,
             headers=headers,
-            verify=False  # Используйте только для тестового окружения
+            verify=False,  # Используйте только для тестового окружения
+            timeout=10
         )
         app.logger.info(f"Статус ответа: {response.status_code}")
         app.logger.info(f"Ответ от сервера: {response.text}")
