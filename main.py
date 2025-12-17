@@ -1,13 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-import certifi
 import os
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjE0NjNlM2Q0LTA4YzktNGFjOS04MDlmLWZlYzdhNDE3OWY4Zg=="
+API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjE0NjNlM2Q0LTA4YzktNGFjOS04MDlmLWZlYzdhNDE3OWY4Zg==y"
 BASE_URL = "https://api.giga.chat/v1/chat/completions"
 MODEL_NAME = "giga-large"
 
@@ -60,7 +59,7 @@ def chat():
     }
 
     try:
-        response = requests.post(BASE_URL, json=payload, headers=headers, verify=certifi.where())
+        response = requests.post(BASE_URL, json=payload, headers=headers, verify=False)
         response.raise_for_status()
         response_data = response.json()
         app.logger.info(f"Ответ от GigaChat: {response_data}")
