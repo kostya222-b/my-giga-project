@@ -2,14 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 import os
+import time
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Ваш API-ключ GigaChat
+# Убедитесь, что это валидный токен (полученный через OAuth)
 API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjU0MDdkNzFmLTczYzAtNDI5Yy04MzAxLTA4N2FjMjlhNTM1YQ=="
-BASE_URL = "https://api.giga.chat/v1/chat/completions"
-MODEL_NAME = "giga-large"
+BASE_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+MODEL_NAME = "GigaChat-2-Max"  # или "giga-large", если нужно
 
 @app.route('/')
 def home():
@@ -46,19 +47,21 @@ def chat():
     payload = {
         "model": MODEL_NAME,
         "messages": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": user_message}
+            {"role": "system", "content": system_message, "created_at": int(time.time())},
+            {"role": "user", "content": user_message, "created_at": int(time.time())}
         ],
+        "profanity_check": True  # если нужно
     }
 
     headers = {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "Authorization": f"Bearer {API_KEY}"
     }
 
     try:
-        app.logger.info(f"Отправляю запрос к GigaChat с ключом: {API_KEY[:10]}...")
-        response = requests.post(BASE_URL, json=payload, headers=headers, verify=False)
+        app.logger.info(f"Отправляю запрос к GigaChat...")
+        response = requests.post(BASE_URL, json=payload, headers=headers)
         app.logger.info(f"Статус ответа: {response.status_code}")
         response.raise_for_status()
         response_data = response.json()
