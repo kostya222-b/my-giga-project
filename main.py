@@ -7,7 +7,7 @@ import time
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OjU0MDdkNzFmLTczYzAtNDI5Yy04MzAxLTA4N2FjMjlhNTM1YQ=="
+API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OmU0N2I1MGUwLTliMjktNGZmYi05MzY2LWYzZjU3M2E3ZjAyNg=="
 BASE_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 MODEL_NAME = "GigaChat-2-Max"
 
