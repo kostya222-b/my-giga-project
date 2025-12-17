@@ -3,13 +3,30 @@ from flask_cors import CORS
 import requests
 import os
 import time
+import http.client
+import json
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-API_KEY = "MDE5YjI2YTctM2I1MC03OTMwLWJmYWQtZWY4N2Y2ZmM5MWE2OmU0N2I1MGUwLTliMjktNGZmYi05MzY2LWYzZjU3M2E3ZjAyNg=="
-BASE_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
-MODEL_NAME = "GigaChat-2-Max"
+# Укажите ваши учетные данные для OAuth
+client_id = "da9683f7-7f85-4cef-944d-0dfef3227e31"
+client_secret = "da9683f7-7f85-4cef-944d-0dfef3227e31"
+
+def get_access_token():
+    conn = http.client.HTTPSConnection("ngw.devices.sberbank.ru")
+    payload = 'scope=GIGACHAT_API_PERS'
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        'RqUID': str(int(time.time())),  # Уникальный идентификатор запроса
+        'Authorization': f'Basic {client_id}:{client_secret}'
+    }
+    conn.request("POST", "/api/v2/oauth", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    token_info = json.loads(data.decode("utf-8"))
+    return token_info['access_token']
 
 @app.route('/')
 def home():
@@ -43,33 +60,43 @@ def chat():
         f"Некорректные комбинации ответов: {[f'\"{', '.join(combo)}\"' for combo in incorrect_combinations]}."
     )
 
+    try:
+        access_token = get_access_token()
+    except Exception as e:
+        app.logger.error(f"Ошибка получения токена: {str(e)}")
+        return jsonify({"error": f"Ошибка получения токена: {str(e)}"}), 500
+
     payload = {
-        "model": MODEL_NAME,
+        "model": "GigaChat-2-Max",
         "messages": [
-            {"role": "system", "content": system_message, "created_at": int(time.time())},
-            {"role": "user", "content": user_message, "created_at": int(time.time())}
-        ],
-        "profanity_check": True
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ]
     }
 
     headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": f"Bearer {API_KEY}"
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {access_token}'
     }
 
     try:
         app.logger.info(f"Отправляю запрос к GigaChat...")
-        response = requests.post(BASE_URL, json=payload, headers=headers, verify=False, timeout=10)
+        response = requests.post(
+            "https://gigachat.devices.sberbank.ru/chat/completions",
+            json=payload,
+            headers=headers,
+            verify=False  # Используйте только для тестового окружения
+        )
         app.logger.info(f"Статус ответа: {response.status_code}")
         app.logger.info(f"Ответ от сервера: {response.text}")
         response.raise_for_status()
         response_data = response.json()
         app.logger.info(f"Ответ от GigaChat: {response_data}")
         return jsonify(response_data), 200
-    except requests.exceptions.SSLError as e:
-        app.logger.error(f"Ошибка SSL: {str(e)}")
-        return jsonify({"error": f"Ошибка SSL: {str(e)}"}), 500
+    except requests.exceptions.HTTPError as e:
+        app.logger.error(f"Ошибка HTTP: {str(e)}")
+        return jsonify({"error": f"Ошибка HTTP: {str(e)}"}), 500
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Ошибка запроса: {str(e)}")
         return jsonify({"error": f"Ошибка запроса: {str(e)}"}), 500
