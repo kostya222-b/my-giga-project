@@ -61,7 +61,8 @@ def chat():
 
     try:
         app.logger.info(f"Отправляю запрос к GigaChat...")
-        response = requests.post(BASE_URL, json=payload, headers=headers)
+        # ⚠️ Внимание: verify=False только для теста!
+        response = requests.post(BASE_URL, json=payload, headers=headers, verify=False)
         app.logger.info(f"Статус ответа: {response.status_code}")
         response.raise_for_status()
         response_data = response.json()
